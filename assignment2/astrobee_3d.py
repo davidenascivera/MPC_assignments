@@ -2,18 +2,13 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import numpy as np
-import control 
 
+import numpy as np
+import control
 
 
 class Astrobee(object):
-    def __init__(self,
-                 mass=9.6,
-                 mass_ac=11.3,
-                 inertia=0.25,
-                 h=0.1,
-                 **kwargs):
+    def __init__(self, mass=9.6, mass_ac=11.3, inertia=0.25, h=0.1, **kwargs):
         """
         Astrobee Robot, NMPC tester class.
 
@@ -39,7 +34,7 @@ class Astrobee(object):
         self.Bc = None
         self.Ad = None
         self.Bd = None
-
+        self.trajectory = None
 
     def cartesian_ground_dynamics(self):
         """
@@ -51,27 +46,27 @@ class Astrobee(object):
         self.n = 6
         self.m = 3
 
-        Ac = np.array([
-            [0, 1, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 1],
-            [0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0]
-        ])
-
-        # Define matrix B
-        Bc = np.array([
-            [0, 0, 0],
-            [0, 0, 0],
-            [1/self.mass, 0, 0],
-            [0, 0, 0],
-            [0, 1/self.mass, 0],
-            [0, 0, 1/self.inertia]
-        ])
-        
-        self.Ac = Ac
-        self.Bc = Bc
+        # TODO: Fill the matrices Ac and Bc according to the model in (1)
+        self.Ac = np.array(
+            [
+                [0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0],
+            ]
+        )
+        self.Bc = np.array(
+            [
+                [0, 0, 0],
+                [0, 0, 0],
+                [1 / self.mass, 0, 0],
+                [0, 1 / self.mass, 0],
+                [0, 0, 0],
+                [0, 0, 1 / self.inertia],
+            ]
+        )
 
         return self.Ac, self.Bc
 
@@ -79,6 +74,10 @@ class Astrobee(object):
         """
         Helper function to populate Ac and Bc with continuous-time
         dynamics of the system.
+
+        System vector:
+        - x = [p_x, p_y, p_z, v_x, v_y, v_z, theta, omega]^T
+        - u = [f_x, f_y, f_z, t_z]^T
         """
 
         # Jacobian of exact discretization
@@ -89,10 +88,31 @@ class Astrobee(object):
         Bc = np.zeros((self.n, self.m))
 
         # TODO: Fill the matrices Ac and Bc according to the model in (1), adding
-        #       the proper component for translation on Z
 
-        self.Ac = Ac
-        self.Bc = Bc
+        self.Ac = np.array(
+            [
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+            ]
+        )
+        self.Bc = np.array(
+            [
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [1 / self.mass, 0, 0, 0],
+                [0, 1 / self.mass, 0, 0],
+                [0, 0, 1 / self.mass, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 1 / self.inertia],
+            ]
+        )
 
         return self.Ac, self.Bc
 
@@ -119,17 +139,17 @@ class Astrobee(object):
         # create a continuous time system in state space form
         continuous_system = control.ss(A, B, C, D)
         # create a discrete time system in state space form
-        discrete_system   = control.c2d(continuous_system, self.dt, method='zoh')
+        discrete_system = control.c2d(continuous_system, self.dt, method="zoh")
         # extract the discrete time matrices
-        ( Ad_list , Bd_list , Cd_list , Dd_list ) = control.ssdata( discrete_system  )
-        
+        (Ad_list, Bd_list, Cd_list, Dd_list) = control.ssdata(discrete_system)
+
         # convret the list to numpy arrays
-        Ad = np . array ( Ad_list )
-        Bd = np . array ( Bd_list )
-        Cd = np . array ( Cd_list )
-        Dd = np . array ( Dd_list )
-        
-        return Ad,Bd,Cd,Dd
+        Ad = np.array(Ad_list)
+        Bd = np.array(Bd_list)
+        Cd = np.array(Cd_list)
+        Dd = np.array(Dd_list)
+
+        return Ad, Bd, Cd, Dd
 
     def set_discrete_dynamics(self, Ad, Bd):
         """
@@ -157,7 +177,9 @@ class Astrobee(object):
         """
 
         if self.Ad is None or self.Bd is None:
-            print("Set discrete-time dynamics with set_discrete_dynamcs(Ad, Bd) method.")
+            print(
+                "Set discrete-time dynamics with set_discrete_dynamcs(Ad, Bd) method."
+            )
             return np.zeros(x.shape[0])
 
         x_next = self.Ad @ x + self.Bd @ u
@@ -171,19 +193,21 @@ class Astrobee(object):
         :param time: total length of the trajectory
         :type time: float
         """
-        '''
-        In questa sezione andiamo a creare la traiettoria da delle funzioni seno e coseno.
-        '''
-        
-        t = np.linspace(0, time, int(time / self.dt))
-        px = 0.025 * np.cos(2 * np.pi * fp * t) + x_off[0]  # 0.05 * np.ones(t.shape)
-        py = 0.025 * np.sin(2 * np.pi * fp * t) + x_off[1]  # np.zeros(t.shape)
-        theta = 0.05 * np.cos(2 * np.pi * ft * t + x_off[3])  # np.zeros(t.shape)
-        if type != "2d":
-            pz = 0.025 * np.cos(2 * np.pi * fp * t) + x_off[2]
-            self.trajectory = np.vstack((px, py, pz, theta))
-        else:
-            self.trajectory = np.vstack((px, py, theta))
+
+        time_span = np.linspace(0, time, int(time / self.dt))
+        self.trajectory = {}
+
+        for index, t in enumerate(time_span):
+
+            px = 0.05 * np.cos(2 * np.pi * fp * t) + x_off[0]  # 0.05 * np.ones(t.shape)
+            py = 0.05 * np.sin(2 * np.pi * fp * t) + x_off[1]  # np.zeros(t.shape)
+            theta = 0.05 * np.cos(2 * np.pi * ft * t + x_off[3])  # np.zeros(t.shape)
+
+            if type != "2d":
+                pz = 0.05 * np.cos(2 * np.pi * fp * t) + x_off[2]
+                self.trajectory[index] = np.vstack((px, py, pz, theta))
+            else:
+                self.trajectory[index] = np.vstack((px, py, theta))
 
     def get_trajectory(self, t_start, t_end=None):
         """
@@ -195,19 +219,48 @@ class Astrobee(object):
         :type t_end: float, optional
         """
 
+        if self.trajectory is None:
+            raise ValueError(
+                "Trajectory not set. Use set_trajectory(time) method to set one."
+            )
+
         start_idx = int(t_start / self.dt)
 
         if t_end is None:
-            piece = self.trajectory[:, start_idx:]
+            piece = {
+                index: ref_point
+                for index, ref_point in self.trajectory.items()
+                if index >= start_idx
+            }
         else:
             end_idx = int(t_end / self.dt)
-            piece = self.trajectory[:, start_idx:end_idx]
+            piece = {
+                index: ref_point
+                for index, ref_point in self.trajectory.items()
+                if index >= start_idx and index <= end_idx
+            }
 
         return piece
 
 
+if __name__ == "__main__":
+    # testing the Astrobee class
 
-astrobee = Astrobee()
+    bee = Astrobee()
+    bee.set_trajectory(time=30.0)
+    piece1 = bee.get_trajectory(0.0)
+    piece2 = bee.get_trajectory(29.0)
 
-# Print the value of inertia
-astrobee.inertia
+    print(bee.trajectory)
+    print(piece1)
+
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots()
+    for index, ref_point in piece1.items():
+        plt.plot(ref_point[0], ref_point[1], "ro")
+
+    for index, ref_point in piece2.items():
+        plt.plot(ref_point[0], ref_point[1], "bo")
+
+    plt.show()
