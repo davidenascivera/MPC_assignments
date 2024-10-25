@@ -1,36 +1,38 @@
-# Space Debris Removal Simulation with Astrobee Robots
+# Model Predictive Control (MPC) Coursework
 
 ## Project Overview
 
-This project focuses on simulating a solution to a current problem in space robotics: **removing space debris from Earth's orbit**. With the ever-increasing number of satellites and other space-bound objects, Earth’s orbit is becoming cluttered with “space garbage,” which poses significant risks to critical assets like the **International Space Station (ISS)** and new launches.
+This repository contains assignments and projects centered around **Model Predictive Control (MPC)**, with applications in space robotics. The primary objective is to design and implement advanced control strategies for **Astrobee robots**, which are free-flying robots operating aboard the **International Space Station (ISS)**. Key tasks include developing control solutions like **finite-time optimal control**, **Linear Quadratic Regulators (LQR)**, and **nonlinear MPC**. The final project applies these methods to an Astrobee rendezvous maneuver, simulating a controlled approach in space-like conditions.
 
-A proposed solution to mitigate this issue is to develop **cleaning satellites** capable of performing a "rendezvous maneuver" with space debris, where the satellite carefully approaches the debris and matches its momentum before impelling it towards Earth's atmosphere for destruction. 
+### Assignments Breakdown
 
-For more information on the current state of space debris, satellites, and rocket bodies, visit: [AstriaGraph](http://astria.tacc.utexas.edu/AstriaGraph/).
+This coursework is divided into several assignments, each focusing on a different aspect of control system design:
 
-### Project Simulation
+- **Assignment 1: Discrete-Time Linear Systems**  
+   *Description:* An introduction to discrete-time state-feedback control design for the Astrobee robot. The objective is to model Astrobee's movement and design a feedback controller to manage its motion effectively. This task includes simulating the robot's behavior under the control system and analyzing stability and performance.
 
-To simulate this solution, we use **Astrobee robots**, which are free-flying robots developed by NASA. The project will simulate a debris cleaning maneuver using two Astrobee robots:
-- **Honey**: Represents a space debris object that follows a pre-identified trajectory.
-- **Bumble**: Represents the cleaning satellite that performs the rendezvous maneuver and the debris removal.
+- **Assignment 2: Finite-Time Optimal Control**  
+   *Description:* This assignment explores finite-time optimal control strategies aimed at completing tasks within strict time limits. The task involves designing an optimal control strategy to manage a robotic satellite’s approach to a target object, simulating how it would efficiently conduct a rendezvous maneuver.
 
-Before executing the simulation in space, we will first practice this maneuver on a **granite table**, which allows for nearly frictionless movement, mimicking space-like conditions.
+- **Assignment 3: Linear Quadratic Regulator (LQR)**  
+   *Description:* Here, we implement a Linear Quadratic Regulator (LQR) to minimize a quadratic cost function for optimal control in linear systems. This assignment involves designing and evaluating the LQR to achieve efficient control over the Astrobee’s motion.
 
-## Key Components
+- **Assignment 4: Model Predictive Control (MPC)**  
+   *Description:* This assignment covers the basics of MPC, implementing it for systems where control actions are optimized over a moving time horizon, considering system constraints and disturbances.
 
-1. **Debris Simulation**: Honey will move freely along a predefined trajectory to simulate the debris floating in orbit.
-2. **Rendezvous Maneuver**: Bumble will attempt to approach Honey, match its momentum, and simulate the act of impelling the debris into a safe disposal trajectory.
-3. **Granite Table**: Used for testing the feasibility of the approach in a controlled, low-friction environment.
+### Project: Nonlinear MPC for Astrobee Rendezvous
+
+The final project applies nonlinear MPC to develop a robust control system for the **Astrobee robot's rendezvous maneuver**. The goal is to create a controller capable of handling potential system uncertainties, such as thruster malfunctions, during approach and docking operations. This simulation models conditions on the ISS, supporting future space applications of autonomous systems.
 
 ## Repository Structure
 
-- `/src`: Contains all the code required to control the robots and simulate the maneuver.
-- `/docs`: Contains additional documentation and resources related to the project.
-- `/tests`: Includes test scripts for verifying the performance of the simulation.
-- `/assets`: Includes any images or media used in the project (e.g., diagrams, simulation results).
+- `/src`: Contains all Python scripts and code files for implementing and simulating the control systems.
+- `/docs`: Includes additional documentation, references, and resources relevant to the assignments.
+- `/tests`: Contains scripts for verifying the performance of each control approach.
+- `/assets`: Holds any media or graphical representations used in the project (e.g., diagrams, simulation results).
 
 ## Installation & Setup
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/your-username/space-debris-simulation.git
+   git clone https://github.com/your-username/mpc-space-robotics.git
